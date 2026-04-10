@@ -6,7 +6,7 @@ from .memory import MemoryWindow
 client = LocalModelClient()
 engine = DriftEngine(model_client=client)
 logger = TelemetryLogger()
-memory = MemoryWindow(size=3)
+memory = MemoryWindow(size=5)
 
 def run_drift_pipeline(user_input, anchor_text):
 
@@ -44,6 +44,9 @@ def run_drift_pipeline(user_input, anchor_text):
 
     # 5. Store truncated output in memory (not raw)
     memory.add({"user": user_input, "assistant": final_text})
+
+    # 5b. Log register check violations
+    register_violations = result.get("register_check", {}).get("violations", [])
 
     # 6. Log telemetry
     logger.log_event(

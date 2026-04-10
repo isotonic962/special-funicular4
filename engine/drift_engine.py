@@ -8,6 +8,7 @@ from .quadrant import QuadrantClassifier
 from .rolling_baseline import RollingBaseline
 from .recovery import DriftRecovery
 from .output_truncator import OutputTruncator
+from .register_check import RegisterCheck
 
 
 class LocalModelClient:
@@ -43,6 +44,7 @@ class DriftEngine:
         self.quadrant = QuadrantClassifier()
         self.baseline = RollingBaseline()
         self.truncator = OutputTruncator(base_n=truncation_n, min_tokens=truncation_min_tokens)
+        self.register_check = RegisterCheck(model_client=model_client)
 
     def process(self, text, messages=None):
         # 1. Generate raw model response
@@ -63,6 +65,9 @@ class DriftEngine:
             current_drift=pre_drift
         )
         truncated_text = trunc_result["text"]
+
+        # 3b. Register check — structural validation via LLM
+        reg_result = self.register_check.check(text, truncated_text)
 
         # 4. Analyze the truncated text (not the raw output)
         analysis = self.analyzer.analyze(truncated_text)
@@ -94,6 +99,7 @@ class DriftEngine:
             "response": modulated,
             "quadrant": quadrant,
             "baseline_action": action,
+            "register_check": reg_result,
             "truncation": {
                 "was_truncated": trunc_result["was_truncated"],
                 "sentences_total": trunc_result["sentences_total"],
@@ -128,9 +134,12 @@ if __name__ == "__main__":
 
         result = engine.process(user_input)
         print(result["response"])
+        if result.get("register_check") and not result["register_check"]["pass"]:
+            print(f"  [REGISTER] violations={result['register_check']['violations']}")
         if result["truncation"]["was_truncated"]:
             t = result["truncation"]
             print(f"\n  [TRUNCATED] {t['sentences_kept']}/{t['sentences_total']} sentences kept")
             print(f"  [REASON] {t['termination_reason']}")
             for i, s in enumerate(t['scan_log']):
                 print(f"  [{i}] constraint={s['is_constraint']} class={s['verb_class']} conf={s['confidence']:.1f} flags={s['flags']}")
+
