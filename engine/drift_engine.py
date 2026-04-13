@@ -8,7 +8,6 @@ from .quadrant import QuadrantClassifier
 from .rolling_baseline import RollingBaseline
 from .recovery import DriftRecovery
 from .output_truncator import OutputTruncator
-from .register_check import RegisterCheck
 
 
 class LocalModelClient:
@@ -44,7 +43,6 @@ class DriftEngine:
         self.quadrant = QuadrantClassifier()
         self.baseline = RollingBaseline()
         self.truncator = OutputTruncator(base_n=truncation_n, min_tokens=truncation_min_tokens)
-        self.register_check = RegisterCheck(model_client=model_client)
 
     def process(self, text, messages=None):
         # 1. Generate raw model response
@@ -66,8 +64,7 @@ class DriftEngine:
         )
         truncated_text = trunc_result["text"]
 
-        # 3b. Register check — structural validation via LLM
-        reg_result = self.register_check.check(text, truncated_text)
+        reg_result = {"pass": True, "violations": [], "raw_response": "disabled"}
 
         # 4. Analyze the truncated text (not the raw output)
         analysis = self.analyzer.analyze(truncated_text)

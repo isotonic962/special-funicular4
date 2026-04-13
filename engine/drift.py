@@ -1,5 +1,5 @@
 class DriftScorer:
-    def __init__(self, w_sentiment=1.5, w_volatility=2.0, w_entropy=0.5):
+    def __init__(self, w_sentiment=0.0, w_volatility=0.0, w_entropy=0.5):
         self.w_sentiment = w_sentiment
         self.w_volatility = w_volatility
         self.w_entropy = w_entropy
