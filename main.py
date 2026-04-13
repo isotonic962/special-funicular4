@@ -10,3 +10,6 @@ while True:
         continue
     output = run_drift_pipeline(user_input, ANCHOR_TEXT)
     print("Engine:", output)
+    from engine.texture import TextureAnalyzer
+    _tex = TextureAnalyzer().analyze(output, user_input)
+    print(f'  [TEXTURE] fig={_tex["figurative_density"]} act={_tex["action_pct"]} int={_tex["interiority_pct"]} dial={_tex["dialogue_density"]} rhythm={_tex["sentence_rhythm"]} echo={_tex["prompt_echo"]}')

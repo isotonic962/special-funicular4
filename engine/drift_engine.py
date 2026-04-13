@@ -8,6 +8,7 @@ from .quadrant import QuadrantClassifier
 from .rolling_baseline import RollingBaseline
 from .recovery import DriftRecovery
 from .output_truncator import OutputTruncator
+from .texture import TextureAnalyzer
 
 
 class LocalModelClient:
@@ -42,6 +43,7 @@ class DriftEngine:
         self.recovery = DriftRecovery(anchor=0.0, decay=0.05)
         self.quadrant = QuadrantClassifier()
         self.baseline = RollingBaseline()
+        self.texture = TextureAnalyzer()
         self.truncator = OutputTruncator(base_n=truncation_n, min_tokens=truncation_min_tokens)
 
     def process(self, text, messages=None):
@@ -131,6 +133,9 @@ if __name__ == "__main__":
 
         result = engine.process(user_input)
         print(result["response"])
+        from engine.texture import TextureAnalyzer as _TA
+        _tex = _TA().analyze(result["response"], user_input)
+        print(f'  [TEXTURE] fig={_tex["figurative_density"]} act={_tex["action_pct"]} int={_tex["interiority_pct"]} dial={_tex["dialogue_density"]} rhythm={_tex["sentence_rhythm"]} echo={_tex["prompt_echo"]}')
         if result.get("register_check") and not result["register_check"]["pass"]:
             print(f"  [REGISTER] violations={result['register_check']['violations']}")
         if result["truncation"]["was_truncated"]:
