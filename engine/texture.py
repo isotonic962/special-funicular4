@@ -25,16 +25,8 @@ class TextureAnalyzer:
             "imagines", "wishes", "hopes", "fears", "believes",
         }
 
-        self.physical_verbs = {
-            "stood", "walked", "ran", "knelt", "bent", "pressed",
-            "gripped", "lifted", "pulled", "pushed", "dug", "cut",
-            "struck", "drove", "carried", "dragged", "dropped",
-            "stepped", "climbed", "turned", "reached", "swung",
-            "stands", "walks", "runs", "kneels", "bends", "presses",
-            "grips", "lifts", "pulls", "pushes", "digs", "cuts",
-            "strikes", "drives", "carries", "drags", "drops",
-            "steps", "climbs", "turns", "reaches", "swings",
-        }
+        from .constraint_detector import ConstraintDetector
+        self.physical_verbs = ConstraintDetector().constraint_verbs
 
     def _split_sentences(self, text):
         raw = re.split(r'(?<=[.!?])\s+(?=[A-Z])', text)
@@ -88,7 +80,7 @@ class TextureAnalyzer:
         sentences = self._split_sentences(text)
         if not sentences:
             return 0.0
-        dialogue_sents = sum(1 for s in sentences if '"' in s)
+        dialogue_sents = sum(1 for s in sentences if any(q in s for q in [chr(34), chr(8220), chr(8221)]))
         return round(dialogue_sents / len(sentences) * 100, 1)
 
     def sentence_rhythm(self, text):

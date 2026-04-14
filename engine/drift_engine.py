@@ -22,7 +22,7 @@ class LocalModelClient:
             "messages": messages,
             "temperature": temperature,
             "repeat_penalty": repeat_penalty,
-            "max_tokens": 4096
+            "max_tokens": 6144
         }
         r = requests.post(f"{self.base_url}/chat/completions", json=payload)
         r.raise_for_status()

@@ -2,10 +2,12 @@ from .model_io import llm
 from .drift_engine import DriftEngine, LocalModelClient
 from .telemetry_logger import TelemetryLogger
 from .memory import MemoryWindow
+from .texture import TextureAnalyzer
 
 client = LocalModelClient()
 engine = DriftEngine(model_client=client)
 logger = TelemetryLogger()
+texture_analyzer = TextureAnalyzer()
 memory = MemoryWindow(size=5)
 
 def run_drift_pipeline(user_input, anchor_text):
@@ -48,6 +50,9 @@ def run_drift_pipeline(user_input, anchor_text):
     # 5b. Log register check violations
     register_violations = result.get("register_check", {}).get("violations", [])
 
+    # 5c. Compute texture metrics
+    texture_data = texture_analyzer.analyze(final_text, user_input)
+
     # 6. Log telemetry
     logger.log_event(
         prompt=user_input,
@@ -55,7 +60,8 @@ def run_drift_pipeline(user_input, anchor_text):
         analysis=raw_analysis,
         drift_score=final_drift_score,
         state=current_state,
-        mode=current_mode
+        mode=current_mode,
+        texture=texture_data
     )
 
     # 7. Return final response
