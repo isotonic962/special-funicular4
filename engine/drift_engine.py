@@ -21,7 +21,8 @@ class LocalModelClient:
             "model": self.model,
             "messages": messages,
             "temperature": temperature,
-            "repeat_penalty": repeat_penalty
+            "repeat_penalty": repeat_penalty,
+            "max_tokens": 4096
         }
         r = requests.post(f"{self.base_url}/chat/completions", json=payload)
         r.raise_for_status()
@@ -58,13 +59,14 @@ class DriftEngine:
         pre_vol = avg_vol if avg_vol is not None else 0.0
         pre_drift = self.state.get_state()
 
-        # 3. TRUNCATE before analysis
+        # 3. TRUNCATE disabled for long-form testing
         trunc_result = self.truncator.truncate(
             response_text,
             current_volatility=pre_vol,
             current_drift=pre_drift
         )
-        truncated_text = trunc_result["text"]
+        trunc_result = {"text": response_text, "original_text": response_text, "sentences_total": 0, "sentences_kept": 0, "sentences_removed": 0, "cut_index": None, "trigger_index": None, "termination_reason": None, "was_truncated": False, "scan_log": []}
+        truncated_text = response_text
 
         reg_result = {"pass": True, "violations": [], "raw_response": "disabled"}
 
